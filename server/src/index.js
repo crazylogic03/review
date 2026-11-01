@@ -14,11 +14,26 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
 // CORS configuration
+import cors from 'cors';
+
 const allowedOrigins = [
   'http://localhost:5173',
   'https://peerreview-lemon.vercel.app',
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((url) => url.trim()) : []),
-].filter(Boolean);
+  'https://peerreview-git-main-crazylogic03s-projects.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 const corsOptions = {
   origin: allowedOrigins,
