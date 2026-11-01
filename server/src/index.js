@@ -14,7 +14,6 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
 // CORS configuration
-import cors from 'cors';
 
 const allowedOrigins = [
   'http://localhost:5173',
