@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem('peerreview_token');
@@ -6,8 +6,23 @@ async function request(endpoint, options = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+
+  let data;
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      data = await res.json();
+    } catch {
+      data = { error: 'Invalid JSON response from server' };
+    }
+  } else {
+    const text = await res.text();
+    data = res.ok
+      ? { message: text }
+      : { error: text || `HTTP error ${res.status}: ${res.statusText || 'Request failed'}` };
+  }
+
+  if (!res.ok) throw new Error(data.error || `Request failed with status ${res.status}`);
   return data;
 }
 
