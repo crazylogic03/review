@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  password      String
+  name          String
+  phone         String?
+  role          Role         @default(STUDENT)
+  avatar        String?
+  bio           String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  assignments   Assignment[]
+  reviews       Review[]
+  activities    Activity[]
+}
+
+model Assignment {
+  id            String    @id @default(cuid())
+  title         String
+  subject       String
+  description   String
+  githubUrl     String?
+  fileUrl       String?
+  fileName      String?
+  status        String    @default("submitted")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews       Review[]
+
+  @@index([userId])
+  @@index([subject])
+}
+
+model Review {
+  id              String     @id @default(cuid())
+  designRating    Int
+  functionalityRating Int
+  codeQualityRating   Int
+  feedback        String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  assignmentId    String
+  assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  reviewerId      String
+  reviewer        User       @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, reviewerId])
+  @@index([assignmentId])
+  @@index([reviewerId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String
+  message     String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
